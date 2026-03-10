@@ -90,6 +90,11 @@ app.post('/api/generate-template', async (req: Request, res: Response) => {
   await templateController.generateTemplate(req, res);
 });
 
+// Fallback to index.html for SPA routing
+app.get('/', (_req: Request, res: Response) => {
+  res.sendFile(path.join(__dirname, '../../frontend/index.html'));
+});
+
 // 404 handler
 app.use((_req: Request, res: Response) => {
   res.status(404).json({
