@@ -39,14 +39,26 @@ export class TemplateController {
 
       logger.info('Raw response from API', { length: claudeResponse.length });
 
-      // Send raw response directly to client (no JSON parsing)
+      // Parse JSON response from Claude/Ollama
+      let parsedResponse;
+      try {
+        // Extract JSON from response (in case there's surrounding text)
+        const jsonMatch = claudeResponse.match(/\{[\s\S]*\}/);
+        const jsonString = jsonMatch ? jsonMatch[0] : claudeResponse;
+        parsedResponse = JSON.parse(jsonString);
+      } catch (parseError) {
+        logger.error('Failed to parse Claude response as JSON', { error: parseError });
+        throw new Error('Invalid JSON response from Claude');
+      }
+
+      // Build response with parsed data
       const response: GenerateTemplateResponse = {
         success: true,
         data: {
-          html: claudeResponse,
-          css: '',
-          js: '',
-          variables: {
+          html: parsedResponse.html || '',
+          css: parsedResponse.css || '',
+          js: parsedResponse.js || '',
+          variables: parsedResponse.variables || {
             colors: {},
             fonts: { heading: { name: '', variable: '' }, body: { name: '', variable: '' } },
           },
