@@ -1,0 +1,21 @@
+{
+  "mcpServers": {
+    "templates-automation": {
+      "command": "npm",
+      "args": ["run", "start:mcp"],
+      "cwd": "/home/user/Templates-automation-",
+      "env": {
+        "NODE_ENV": "production",
+        "ANTHROPIC_API_KEY": "${ANTHROPIC_API_KEY}",
+        "OLLAMA_BASE_URL": "${OLLAMA_BASE_URL:-http://localhost:11434}"
+      },
+      "disabled": false
+    }
+  },
+  "settings": {
+    "logLevel": "info",
+    "timeout": 300000,
+    "retryAttempts": 3,
+    "retryDelay": 1000
+  }
+}
