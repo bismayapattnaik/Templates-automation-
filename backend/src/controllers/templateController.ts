@@ -37,17 +37,35 @@ export class TemplateController {
         processedDesignInput
       );
 
-      logger.info('Raw response from API', { length: claudeResponse.length });
+      logger.info('Raw response from API', {
+        length: claudeResponse.length,
+        preview: claudeResponse.substring(0, 200)
+      });
 
       // Parse JSON response from Claude/Ollama
       let parsedResponse;
       try {
-        // Extract JSON from response (in case there's surrounding text)
-        const jsonMatch = claudeResponse.match(/\{[\s\S]*\}/);
-        const jsonString = jsonMatch ? jsonMatch[0] : claudeResponse;
+        // Try multiple strategies to extract and parse JSON
+        let jsonString = claudeResponse.trim();
+
+        // Strategy 1: Try markdown code block first
+        const mdCodeMatch = jsonString.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+        if (mdCodeMatch) {
+          jsonString = mdCodeMatch[1].trim();
+        }
+
+        // Strategy 2: Extract JSON object from response
+        const jsonMatch = jsonString.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          jsonString = jsonMatch[0];
+        }
+
         parsedResponse = JSON.parse(jsonString);
       } catch (parseError) {
-        logger.error('Failed to parse Claude response as JSON', { error: parseError });
+        logger.error('Failed to parse API response as JSON', {
+          error: parseError,
+          rawResponse: claudeResponse.substring(0, 500)
+        });
         throw new Error('Invalid JSON response from Claude');
       }
 
