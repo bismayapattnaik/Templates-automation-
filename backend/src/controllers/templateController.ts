@@ -1,7 +1,6 @@
 import { Request, Response } from 'express';
 import { claudeService } from '../services/claudeService.js';
 import { imageProcessor } from '../services/imageProcessor.js';
-import { sopValidator } from '../services/sopValidator.js';
 import { logger } from '../utils/logger.js';
 import { GenerateTemplateRequest, GenerateTemplateResponse } from '../types/index.js';
 import { sopInstructions } from '../prompts/sopInstructions.js';
@@ -47,8 +46,16 @@ export class TemplateController {
           html: claudeResponse,
           css: '',
           js: '',
-          variables: {},
-          validation: { passed: true, violations: [] },
+          variables: {
+            colors: {},
+            fonts: { heading: { name: '', variable: '' }, body: { name: '', variable: '' } },
+          },
+          validation: {
+            passed: true,
+            sopResults: {},
+            errors: [],
+            warnings: [],
+          },
         },
         metadata: {
           processingTime: Date.now() - startTime,

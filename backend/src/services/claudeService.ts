@@ -30,7 +30,7 @@ export class ClaudeService {
 
       if (this.useOllama) {
         // Simplify prompt for Ollama
-        const simplifiedPrompt = this.simplifyPromptForOllama(systemPrompt);
+        const simplifiedPrompt = this.simplifyPromptForOllama();
         return await this.generateWithOllama(simplifiedPrompt, userPrompt, designInput);
       } else {
         return await this.generateWithAnthropic(systemPrompt, userPrompt, designInput);
@@ -121,7 +121,7 @@ export class ClaudeService {
   /**
    * Simplify prompt for Ollama - it doesn't handle long complex prompts well
    */
-  private simplifyPromptForOllama(systemPrompt: string): string {
+  private simplifyPromptForOllama(): string {
     return `You are an expert frontend template engineer. Generate HTML/CSS/JS templates following these rules:
 
 1. Use semantic HTML with proper structure
