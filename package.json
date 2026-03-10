@@ -1,0 +1,39 @@
+{
+  "name": "templates-automation",
+  "version": "1.0.0",
+  "description": "Design-to-Template automation system using Claude AI",
+  "main": "dist/backend/src/index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch backend/src/index.ts",
+    "build": "tsc",
+    "start": "node dist/backend/src/index.js",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "test": "vitest",
+    "test:unit": "vitest run backend/src",
+    "test:integration": "vitest run tests/integration"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "@anthropic-ai/sdk": "^0.78.0",
+    "multer": "^1.4.5-lts.1",
+    "dotenv": "^16.4.5",
+    "axios": "^1.7.4",
+    "sharp": "^0.33.5"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3",
+    "tsx": "^4.7.2",
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.10.6",
+    "@types/multer": "^1.4.11",
+    "eslint": "^8.56.0",
+    "prettier": "^3.1.1",
+    "vitest": "^1.1.0",
+    "@vitest/ui": "^1.1.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

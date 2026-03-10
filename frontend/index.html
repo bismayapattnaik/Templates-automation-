@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Design to Template Automation</title>
+    <link rel="stylesheet" href="css/variables.css" />
+    <link rel="stylesheet" href="css/layout.css" />
+    <link rel="stylesheet" href="css/styles.css" />
+    <link rel="stylesheet" href="css/components.css" />
+  </head>
+  <body>
+    <div id="app" class="app-container">
+      <!-- Header -->
+      <header class="app-header">
+        <div class="header-content">
+          <h1 class="header-title">🎨 Design to Template</h1>
+          <p class="header-subtitle">Convert design inspiration into reusable HTML templates</p>
+        </div>
+      </header>
+
+      <!-- Main Content -->
+      <main class="app-main">
+        <div class="container">
+          <!-- Left Panel: Form -->
+          <section class="form-panel" id="formPanel">
+            <h2 class="section-heading">Template Configuration</h2>
+
+            <!-- Design Input Section -->
+            <fieldset class="form-group">
+              <legend class="form-legend">Design Source</legend>
+
+              <!-- File Upload -->
+              <div class="form-field">
+                <label for="designScreenshot" class="form-label">Upload Design Screenshot</label>
+                <input
+                  type="file"
+                  id="designScreenshot"
+                  class="form-input-file"
+                  accept="image/jpeg,image/png,image/webp"
+                />
+                <small class="form-help">JPG, PNG, or WebP (max 5MB)</small>
+              </div>
+
+              <!-- OR Divider -->
+              <div class="form-divider">OR</div>
+
+              <!-- URL Input -->
+              <div class="form-field">
+                <label for="designUrl" class="form-label">Reference Website URL</label>
+                <input
+                  type="url"
+                  id="designUrl"
+                  class="form-input"
+                  placeholder="https://example.com"
+                />
+                <small class="form-help">Website to draw design inspiration from</small>
+              </div>
+            </fieldset>
+
+            <!-- Current HTML -->
+            <div class="form-field">
+              <label for="currentHtml" class="form-label">Current Template HTML</label>
+              <textarea
+                id="currentHtml"
+                class="form-textarea"
+                placeholder="<section>...</section>"
+                rows="8"
+              ></textarea>
+              <small class="form-help">Paste your existing template to understand the structure</small>
+            </div>
+
+            <!-- Section Type -->
+            <div class="form-field">
+              <label for="sectionType" class="form-label">Section Type</label>
+              <select id="sectionType" class="form-select">
+                <option value="">Select section type...</option>
+                <option value="hero">Hero Section</option>
+                <option value="features">Features Section</option>
+                <option value="testimonials">Testimonials Section</option>
+                <option value="cta">Call to Action</option>
+                <option value="pricing">Pricing Section</option>
+                <option value="stats">Stats Section</option>
+                <option value="about">About Section</option>
+                <option value="footer">Footer Section</option>
+              </select>
+            </div>
+
+            <!-- Template Name -->
+            <div class="form-field">
+              <label for="templateName" class="form-label">Template Name</label>
+              <input
+                type="text"
+                id="templateName"
+                class="form-input"
+                placeholder="e.g., hero-section-v2"
+              />
+              <small class="form-help">Identifier for your template</small>
+            </div>
+
+            <!-- Color Scheme -->
+            <div class="form-field">
+              <label for="colorScheme" class="form-label">Color Scheme</label>
+              <select id="colorScheme" class="form-select">
+                <option value="3">3 Colors (Primary, Accent, Neutral)</option>
+                <option value="4">4 Colors (Primary, Accent1, Accent2, Neutral)</option>
+              </select>
+              <small class="form-help">Distribution: 3 colors = 50-25-15-10, 4 colors = 50-25-12-8-5</small>
+            </div>
+
+            <!-- Company Vibe -->
+            <div class="form-field">
+              <label for="companyVibe" class="form-label">Company Vibe (Optional)</label>
+              <textarea
+                id="companyVibe"
+                class="form-textarea"
+                placeholder="e.g., modern, tech-forward, professional, minimal"
+                rows="3"
+              ></textarea>
+              <small class="form-help">Describe the design aesthetic to match</small>
+            </div>
+
+            <!-- Submit Button -->
+            <button id="submitBtn" class="btn btn-primary btn-large">
+              <span class="btn-text">Generate Template</span>
+              <span class="btn-loader" style="display: none;">Loading...</span>
+            </button>
+
+            <!-- Error Message -->
+            <div id="errorMessage" class="error-message" style="display: none;"></div>
+            <div id="successMessage" class="success-message" style="display: none;"></div>
+          </section>
+
+          <!-- Center Panel: Preview -->
+          <section class="preview-panel">
+            <h2 class="section-heading">Live Preview</h2>
+            <div class="preview-container">
+              <div class="preview-placeholder" id="previewPlaceholder">
+                <div class="placeholder-content">
+                  <p class="placeholder-text">🔄 Generate a template to see preview here</p>
+                </div>
+              </div>
+              <iframe
+                id="previewFrame"
+                class="preview-iframe"
+                sandbox="allow-same-origin"
+                style="display: none;"
+              ></iframe>
+            </div>
+          </section>
+
+          <!-- Right Panel: Generated Code -->
+          <section class="code-panel">
+            <h2 class="section-heading">Generated Code</h2>
+
+            <!-- Tabs -->
+            <div class="tabs-container">
+              <button class="tab-button active" data-tab="html">HTML</button>
+              <button class="tab-button" data-tab="css">CSS</button>
+              <button class="tab-button" data-tab="js">JavaScript</button>
+              <button class="tab-button" data-tab="variables">Variables</button>
+              <button class="tab-button" data-tab="validation">Validation</button>
+            </div>
+
+            <!-- Tab Content -->
+            <div class="tabs-content">
+              <!-- HTML Tab -->
+              <div class="tab-pane active" id="html-tab">
+                <div class="code-header">
+                  <span>HTML</span>
+                  <button class="btn-copy" data-copy="htmlCode" title="Copy HTML">📋 Copy</button>
+                </div>
+                <pre><code id="htmlCode" class="code-block"></code></pre>
+              </div>
+
+              <!-- CSS Tab -->
+              <div class="tab-pane" id="css-tab">
+                <div class="code-header">
+                  <span>CSS</span>
+                  <button class="btn-copy" data-copy="cssCode" title="Copy CSS">📋 Copy</button>
+                </div>
+                <pre><code id="cssCode" class="code-block"></code></pre>
+              </div>
+
+              <!-- JavaScript Tab -->
+              <div class="tab-pane" id="js-tab">
+                <div class="code-header">
+                  <span>JavaScript</span>
+                  <button class="btn-copy" data-copy="jsCode" title="Copy JS">📋 Copy</button>
+                </div>
+                <pre><code id="jsCode" class="code-block"></code></pre>
+              </div>
+
+              <!-- Variables Tab -->
+              <div class="tab-pane" id="variables-tab">
+                <div class="code-header">
+                  <span>Variables Reference</span>
+                  <button class="btn-copy" data-copy="variablesCode" title="Copy Variables">📋 Copy</button>
+                </div>
+                <pre><code id="variablesCode" class="code-block"></code></pre>
+              </div>
+
+              <!-- Validation Tab -->
+              <div class="tab-pane" id="validation-tab">
+                <div class="validation-content" id="validationContent">
+                  <p class="placeholder-text">No validation report yet</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Download Button -->
+            <button id="downloadBtn" class="btn btn-secondary" style="display: none;">
+              ⬇️ Download All Files
+            </button>
+          </section>
+        </div>
+      </main>
+
+      <!-- Footer -->
+      <footer class="app-footer">
+        <p class="footer-text">
+          Design to Template Automation System v1.0 |
+          <a href="/api/health" target="_blank">API Status</a>
+        </p>
+      </footer>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/main.js"></script>
+  </body>
+</html>
