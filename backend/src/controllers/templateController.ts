@@ -38,6 +38,13 @@ export class TemplateController {
         processedDesignInput
       );
 
+      // Log raw response for debugging
+      logger.info('Raw Claude response received', {
+        length: claudeResponse.length,
+        first500: claudeResponse.substring(0, 500),
+        last200: claudeResponse.substring(Math.max(0, claudeResponse.length - 200))
+      });
+
       // Parse response
       let parsedResponse: any;
       try {
