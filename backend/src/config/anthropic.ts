@@ -1,9 +1,12 @@
 import Anthropic from '@anthropic-ai/sdk';
 import config from './environment.js';
 
-export const anthropicClient = new Anthropic({
-  apiKey: config.anthropicApiKey,
-});
+// Only create client if using Anthropic API
+export const anthropicClient = config.anthropicApiKey
+  ? new Anthropic({
+      apiKey: config.anthropicApiKey,
+    })
+  : null;
 
 export const claudeConfig = {
   model: config.claudeModel,

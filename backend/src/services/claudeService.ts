@@ -1,15 +1,19 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { anthropicClient, claudeConfig } from '../config/anthropic.js';
+import config from '../config/environment.js';
 import { logger } from '../utils/logger.js';
 import { DesignInput } from '../types/index.js';
 
 type MessageContent = Anthropic.TextBlockParam | Anthropic.ImageBlockParam;
 
 export class ClaudeService {
-  private client: Anthropic;
+  private client: Anthropic | null;
+  private useOllama: boolean;
 
   constructor() {
-    this.client = anthropicClient;
+    this.useOllama = !config.anthropicApiKey || config.anthropicApiKey.length === 0;
+    this.client = this.useOllama ? null : anthropicClient;
+    logger.info(`Using ${this.useOllama ? 'Ollama' : 'Anthropic API'} for Claude service`);
   }
 
   /**
@@ -22,41 +26,86 @@ export class ClaudeService {
     designInput: DesignInput
   ): Promise<string> {
     try {
-      logger.info('Calling Claude API for template generation');
+      logger.info(`Calling ${this.useOllama ? 'Ollama' : 'Claude'} API for template generation`);
 
-      // Build message content with image if provided
-      const messageContent = this.buildMessageContent(userPrompt, designInput);
-
-      // Call Claude API
-      const response = await this.client.messages.create({
-        model: claudeConfig.model,
-        max_tokens: claudeConfig.maxTokens,
-        temperature: claudeConfig.temperature,
-        top_p: claudeConfig.topP,
-        system: systemPrompt,
-        messages: [
-          {
-            role: 'user',
-            content: messageContent,
-          },
-        ],
-      });
-
-      // Extract text response
-      const textContent = response.content.find((block) => block.type === 'text');
-      if (!textContent || textContent.type !== 'text') {
-        throw new Error('No text response from Claude');
+      if (this.useOllama) {
+        return await this.generateWithOllama(systemPrompt, userPrompt, designInput);
+      } else {
+        return await this.generateWithAnthropic(systemPrompt, userPrompt, designInput);
       }
-
-      logger.info('Claude API response received successfully', {
-        tokens_used: response.usage?.input_tokens + response.usage?.output_tokens,
-      });
-
-      return textContent.text;
     } catch (error) {
-      logger.error('Claude API error', error);
+      logger.error('Template generation error', error);
       throw this.handleError(error);
     }
+  }
+
+  private async generateWithAnthropic(
+    systemPrompt: string,
+    userPrompt: string,
+    designInput: DesignInput
+  ): Promise<string> {
+    // Build message content with image if provided
+    const messageContent = this.buildMessageContent(userPrompt, designInput);
+
+    // Call Claude API
+    const response = await this.client!.messages.create({
+      model: claudeConfig.model,
+      max_tokens: claudeConfig.maxTokens,
+      temperature: claudeConfig.temperature,
+      top_p: claudeConfig.topP,
+      system: systemPrompt,
+      messages: [
+        {
+          role: 'user',
+          content: messageContent,
+        },
+      ],
+    });
+
+    // Extract text response
+    const textContent = response.content.find((block) => block.type === 'text');
+    if (!textContent || textContent.type !== 'text') {
+      throw new Error('No text response from Claude');
+    }
+
+    logger.info('Claude API response received successfully', {
+      tokens_used: response.usage?.input_tokens + response.usage?.output_tokens,
+    });
+
+    return textContent.text;
+  }
+
+  private async generateWithOllama(
+    systemPrompt: string,
+    userPrompt: string,
+    designInput: DesignInput
+  ): Promise<string> {
+    // Build message content
+    let fullPrompt = userPrompt;
+    if (designInput.type === 'url' && designInput.data) {
+      fullPrompt = `Design Reference URL: ${designInput.data}\n\n${userPrompt}`;
+    }
+
+    const response = await fetch(`${config.ollamaBaseUrl}/api/generate`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: config.ollamaModel,
+        prompt: `${systemPrompt}\n\n${fullPrompt}`,
+        stream: false,
+        temperature: 0.7,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Ollama API error: ${response.statusText}`);
+    }
+
+    const data = (await response.json()) as { response?: string };
+    logger.info('Ollama API response received successfully');
+    return data.response || '';
   }
 
   /**
@@ -128,18 +177,38 @@ export class ClaudeService {
    */
   async testConnection(): Promise<boolean> {
     try {
-      logger.info('Testing Claude API connection');
-
-      await this.client.messages.create({
-        model: claudeConfig.model,
-        max_tokens: 100,
-        messages: [
-          {
-            role: 'user',
-            content: 'Say "Connection successful" if you can read this.',
+      if (this.useOllama) {
+        logger.info('Testing Ollama connection');
+        const response = await fetch(`${config.ollamaBaseUrl}/api/generate`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
           },
-        ],
-      });
+          body: JSON.stringify({
+            model: config.ollamaModel,
+            prompt: 'Say "Connection successful" if you can read this.',
+            stream: false,
+            temperature: 0.7,
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`Ollama connection failed: ${response.statusText}`);
+        }
+      } else {
+        logger.info('Testing Claude API connection');
+
+        await this.client!.messages.create({
+          model: claudeConfig.model,
+          max_tokens: 100,
+          messages: [
+            {
+              role: 'user',
+              content: 'Say "Connection successful" if you can read this.',
+            },
+          ],
+        });
+      }
 
       logger.info('Connection test passed');
       return true;
