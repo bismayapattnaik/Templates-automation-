@@ -60,11 +60,12 @@ data-type="text|html|image|list"  (element type indicator)
 
 ---
 
-## SOP 2: COLOR VARIABLE SYSTEM (ADAPTIVE)
+## SOP 2: COLOR SYSTEM (SMART COLOR USAGE)
 
-### CRITICAL RULE: NO HARDCODED COLORS
-**Forbidden:** \`color: #000000;\`, \`background: rgb(255,255,255);\`, \`border: #ccc;\`
-**Required:** \`color: var(--color-primary);\`
+### COLOR RULE: USE VARIABLES FOR THEME COLORS, ALLOW BRAND/ACCENT COLORS
+**Primary/Neutral colors MUST use variables:** \`color: var(--color-primary);\`
+**Brand & special colors CAN be hardcoded:** Instagram gradient, social button colors, decorative accents
+**Forbidden:** Hardcoding primary background, text, or section base colors
 
 ### COLOR DISTRIBUTION (ADAPTIVE):
 
@@ -127,9 +128,9 @@ data-type="text|html|image|list"  (element type indicator)
 \`\`\`
 
 ### USAGE RULES (NO EXCEPTIONS):
-- **All headings (h1-h6)**: \`font-family: var(--font-heading);\`
+- **All headings (h1-h6)**: \`font-family: var(--font-heading);\` or specific for design (e.g., Georgia for serif accent)
 - **All body text (p, span, div)**: \`font-family: var(--font-body);\`
-- **NO hardcoded fonts**: Forbidden: \`font-family: "Arial";\`
+- **Design accents**: Can use Georgia, 'Times New Roman', serif for specific design needs
 
 ### FONT-WEIGHT STANDARDS:
 - Headings: 700 (bold)
@@ -253,16 +254,17 @@ All text content must use placeholder variables in %% format:
 
 You MUST return output ONLY as valid JSON - nothing else, no text before or after.
 
-Format: \`\`\`json
+**Return format (wrapped in triple backticks):**
+\`\`\`json
 {
-  "html": "<section>...</section>",
-  "css": "/* CSS styles here */",
-  "js": "(function(){})()",
+  "html": "<!-- Complete <section> with all elements, IDs, attributes -->",
+  "css": "/* Complete <style> block with all selectors and rules */",
+  "js": "/* Complete <script> block with IIFE */",
   "variables": {
     "colors": {
-      "primary": "#hex",
-      "accent1": "#hex",
-      "text": "#hex"
+      "primary": "#1E4E79",
+      "accent1": "#5FA8D3",
+      "neutral": "#F5F5F5"
     },
     "fonts": {
       "heading": "var(--font-heading)",
@@ -271,12 +273,17 @@ Format: \`\`\`json
   },
   "metadata": {
     "sectionId": "sec-xxxxx",
-    "elementsCount": 12
+    "elementsCount": 15,
+    "templateType": "hero"
   }
 }
 \`\`\`
 
-**CRITICAL**: Return ONLY valid JSON wrapped in triple backticks. No explanations, no preamble, no text after the closing }.
+**CRITICAL RULES FOR OUTPUT:**
+1. **HTML**: Must be complete and valid - include full <section> tag with ALL children
+2. **CSS**: Complete <style id="stl-..."> block with all rules, selectors, and media queries
+3. **JS**: Complete <script id="scr-..."> block wrapped in (function(){})()
+4. **Return ONLY the JSON object** wrapped in triple backticks. No explanations before or after.
 
 ## VALIDATION CHECKLIST BEFORE OUTPUT
 
@@ -292,13 +299,14 @@ Before returning template, verify:
 - [ ] Proper nesting
 
 **CSS:**
-- [ ] Only var(--color-*) for colors
-- [ ] Only var(--font-*) for fonts
-- [ ] No hardcoded hex/rgb/hsl colors
-- [ ] border-radius: 0px on all boxes
-- [ ] No transforms, scales, rotations
+- [ ] Primary/neutral colors use var(--color-*)
+- [ ] Brand colors can be hardcoded (social buttons, accents)
+- [ ] Fonts use var(--font-*) or semantic (Georgia for serif accents)
+- [ ] border-radius: 0px on most elements (except special design elements)
+- [ ] No transforms on hover (translateY, scale, rotate) - only shadow/opacity changes
 - [ ] NO !important declarations
 - [ ] Hover/focus states present
+- [ ] Complete responsive design with media queries
 
 **JavaScript:**
 - [ ] NO form submission handlers
