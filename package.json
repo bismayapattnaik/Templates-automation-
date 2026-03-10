@@ -6,10 +6,8 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch backend/src/index.ts",
-    "dev:mcp": "tsx watch backend/src/mcp/server.ts",
     "build": "tsc",
     "start": "node dist/backend/src/index.js",
-    "start:mcp": "node dist/backend/src/mcp/server.js",
     "lint": "eslint .",
     "format": "prettier --write .",
     "test": "vitest",
@@ -19,7 +17,6 @@
   "dependencies": {
     "express": "^4.18.2",
     "@anthropic-ai/sdk": "^0.78.0",
-    "@modelcontextprotocol/sdk": "^0.7.0",
     "multer": "^1.4.5-lts.1",
     "dotenv": "^16.4.5",
     "axios": "^1.7.4",
