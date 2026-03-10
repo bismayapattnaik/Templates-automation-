@@ -251,13 +251,13 @@ All text content must use placeholder variables in %% format:
 
 ## OUTPUT REQUIREMENTS
 
-You MUST return output as valid JSON with this structure:
+You MUST return output ONLY as valid JSON - nothing else, no text before or after.
 
-\`\`\`json
+Format: \`\`\`json
 {
   "html": "<section>...</section>",
-  "css": "<!-- CSS here -->",
-  "js": "<!-- JavaScript here -->",
+  "css": "/* CSS styles here */",
+  "js": "(function(){})()",
   "variables": {
     "colors": {
       "primary": "#hex",
@@ -275,6 +275,8 @@ You MUST return output as valid JSON with this structure:
   }
 }
 \`\`\`
+
+**CRITICAL**: Return ONLY valid JSON wrapped in triple backticks. No explanations, no preamble, no text after the closing }.
 
 ## VALIDATION CHECKLIST BEFORE OUTPUT
 

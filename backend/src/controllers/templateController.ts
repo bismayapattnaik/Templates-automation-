@@ -41,15 +41,36 @@ export class TemplateController {
       // Parse response
       let parsedResponse: any;
       try {
-        // Extract JSON from response (Claude may wrap it in markdown)
-        const jsonMatch = claudeResponse.match(/\{[\s\S]*\}/);
-        if (!jsonMatch) {
+        // Extract JSON from response (may be wrapped in markdown or text)
+        const jsonMatch = claudeResponse.match(/```json\s*([\s\S]*?)\s*```|(\{[\s\S]*\})/);
+        let jsonString = jsonMatch ? (jsonMatch[1] || jsonMatch[2]) : null;
+
+        if (!jsonString) {
+          // Try to find first { and last } for plain JSON
+          const openBrace = claudeResponse.indexOf('{');
+          const closeBrace = claudeResponse.lastIndexOf('}');
+          if (openBrace !== -1 && closeBrace !== -1 && closeBrace > openBrace) {
+            jsonString = claudeResponse.substring(openBrace, closeBrace + 1);
+          }
+        }
+
+        if (!jsonString) {
+          logger.error('No JSON found in response', { response: claudeResponse.substring(0, 200) });
           throw new Error('No JSON found in Claude response');
         }
 
-        parsedResponse = JSON.parse(jsonMatch[0]);
+        // Clean up common issues
+        jsonString = jsonString
+          .replace(/[\x00-\x1F\x7F]/g, ' ') // Remove control characters
+          .replace(/,\s*}/g, '}') // Remove trailing commas
+          .replace(/,\s*]/g, ']'); // Remove trailing commas in arrays
+
+        parsedResponse = JSON.parse(jsonString);
       } catch (parseError) {
-        logger.error('Failed to parse Claude response as JSON', { error: parseError });
+        logger.error('Failed to parse Claude response as JSON', {
+          error: parseError,
+          responseStart: claudeResponse.substring(0, 300)
+        });
         throw new Error(
           'Claude response was not valid JSON. Please try again or check your input.'
         );
