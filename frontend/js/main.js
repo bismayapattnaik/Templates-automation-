@@ -143,7 +143,6 @@ async function handleSubmit() {
   setLoading(true);
 
   try {
-    // Call API (Phase 2: will be implemented)
     const response = await generateTemplate();
 
     if (response.success) {
@@ -151,7 +150,17 @@ async function handleSubmit() {
       renderOutput(response.data);
       showSuccess('Template generated successfully!');
     } else {
-      showError(response.error.message);
+      // Handle SOP violations
+      if (response.error?.sopViolations && response.error.sopViolations.length > 0) {
+        let violationText = response.error.message + ':\n\n';
+        response.error.sopViolations.forEach((v) => {
+          violationText += `• ${v.sop}: ${v.violation}\n`;
+          if (v.suggestion) violationText += `  💡 ${v.suggestion}\n`;
+        });
+        showError(violationText);
+      } else {
+        showError(response.error?.message || 'Failed to generate template');
+      }
     }
   } catch (error) {
     showError(`Error: ${error.message}`);
@@ -163,16 +172,42 @@ async function handleSubmit() {
 
 // API call
 async function generateTemplate() {
-  // Phase 2: This will make actual API call
-  // For now, return mock response
-  return {
-    success: false,
-    error: {
-      code: 'NOT_IMPLEMENTED',
-      message:
-        'Template generation coming in Phase 2 (Claude API integration). Form validation is working!',
+  // Prepare design input
+  let designInput;
+
+  if (appState.designInput) {
+    // Use uploaded screenshot
+    designInput = appState.designInput;
+  } else if (designUrl.value) {
+    // Use URL
+    designInput = {
+      type: 'url',
+      data: designUrl.value,
+    };
+  } else {
+    throw new Error('No design input provided');
+  }
+
+  // Build request
+  const request = {
+    designInput,
+    currentHtml: appState.currentHtml,
+    templateConfig: {
+      sectionType: sectionType.value,
+      templateName: templateName.value,
+      colorScheme: parseInt(colorScheme.value),
+      companyVibe: companyVibe.value || undefined,
     },
   };
+
+  // Call API
+  return fetch('/api/generate-template', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(request),
+  }).then((res) => res.json());
 }
 
 // Form validation
@@ -407,9 +442,14 @@ function setLoading(isLoading) {
 function logStartup() {
   console.log('%c🎨 Design to Template Automation', 'font-size: 16px; font-weight: bold; color: #1e4e79;');
   console.log('Phase 1: Foundation Setup ✓');
-  console.log('Phase 2: Claude Integration - Coming Soon');
-  console.log('Form validation working ✓');
-  console.log('API endpoints ready ✓');
+  console.log('Phase 2: Claude Integration ✓');
+  console.log('✓ Claude API integration');
+  console.log('✓ SOP validators (5 comprehensive validators)');
+  console.log('✓ Image processing pipeline');
+  console.log('✓ Template generation endpoint');
+  console.log('✓ Form validation working');
+  console.log('✓ API endpoints ready');
+  console.log('Ready to generate templates!');
 }
 
 // Initialize on DOM ready

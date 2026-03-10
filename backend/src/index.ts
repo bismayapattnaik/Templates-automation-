@@ -3,6 +3,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import config from './config/environment.js';
 import { logger } from './utils/logger.js';
+import { templateController } from './controllers/templateController.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -84,18 +85,9 @@ app.get('/api/section-types', (_req: Request, res: Response) => {
   });
 });
 
-// Placeholder template generation endpoint
-app.post('/api/generate-template', (_req: Request, res: Response) => {
-  logger.info('Received template generation request');
-
-  // This will be implemented in Phase 2
-  res.status(501).json({
-    success: false,
-    error: {
-      code: 'NOT_IMPLEMENTED',
-      message: 'Template generation endpoint coming in Phase 2 (Claude integration)',
-    },
-  });
+// Template generation endpoint
+app.post('/api/generate-template', async (req: Request, res: Response) => {
+  await templateController.generateTemplate(req, res);
 });
 
 // 404 handler
