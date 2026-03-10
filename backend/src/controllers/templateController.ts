@@ -41,12 +41,17 @@ export class TemplateController {
       // Parse response
       let parsedResponse: any;
       try {
-        // Extract JSON from response (may be wrapped in markdown or text)
-        const jsonMatch = claudeResponse.match(/```json\s*([\s\S]*?)\s*```|(\{[\s\S]*\})/);
-        let jsonString = jsonMatch ? (jsonMatch[1] || jsonMatch[2]) : null;
+        // Extract JSON from response with multiple strategies
+        let jsonString: string | null = null;
 
-        if (!jsonString) {
-          // Try to find first { and last } for plain JSON
+        // Strategy 1: Look for markdown code blocks
+        const markdownMatch = claudeResponse.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+        if (markdownMatch && markdownMatch[1]) {
+          jsonString = markdownMatch[1].trim();
+        }
+
+        // Strategy 2: Find first { and last }
+        if (!jsonString || !this.isValidJson(jsonString)) {
           const openBrace = claudeResponse.indexOf('{');
           const closeBrace = claudeResponse.lastIndexOf('}');
           if (openBrace !== -1 && closeBrace !== -1 && closeBrace > openBrace) {
@@ -55,21 +60,25 @@ export class TemplateController {
         }
 
         if (!jsonString) {
-          logger.error('No JSON found in response', { response: claudeResponse.substring(0, 200) });
-          throw new Error('No JSON found in Claude response');
+          logger.error('No JSON found in response', {
+            response: claudeResponse.substring(0, 500),
+            length: claudeResponse.length
+          });
+          throw new Error('No JSON found in response');
         }
 
         // Clean up common issues
         jsonString = jsonString
-          .replace(/[\x00-\x1F\x7F]/g, ' ') // Remove control characters
-          .replace(/,\s*}/g, '}') // Remove trailing commas
-          .replace(/,\s*]/g, ']'); // Remove trailing commas in arrays
+          .replace(/[\x00-\x08\x0B-\x0C\x0E-\x1F\x7F]/g, ' ') // Remove control characters
+          .replace(/,\s*([}\]])/g, '$1') // Remove trailing commas
+          .trim();
 
         parsedResponse = JSON.parse(jsonString);
       } catch (parseError) {
         logger.error('Failed to parse Claude response as JSON', {
           error: parseError,
-          responseStart: claudeResponse.substring(0, 300)
+          responseStart: claudeResponse.substring(0, 500),
+          responseLength: claudeResponse.length
         });
         throw new Error(
           'Claude response was not valid JSON. Please try again or check your input.'
@@ -148,6 +157,18 @@ export class TemplateController {
       };
 
       res.status(500).json(response);
+    }
+  }
+
+  /**
+   * Check if a string is valid JSON
+   */
+  private isValidJson(str: string): boolean {
+    try {
+      JSON.parse(str);
+      return true;
+    } catch {
+      return false;
     }
   }
 

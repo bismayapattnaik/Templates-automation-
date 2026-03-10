@@ -29,7 +29,9 @@ export class ClaudeService {
       logger.info(`Calling ${this.useOllama ? 'Ollama' : 'Claude'} API for template generation`);
 
       if (this.useOllama) {
-        return await this.generateWithOllama(systemPrompt, userPrompt, designInput);
+        // Simplify prompt for Ollama
+        const simplifiedPrompt = this.simplifyPromptForOllama(systemPrompt);
+        return await this.generateWithOllama(simplifiedPrompt, userPrompt, designInput);
       } else {
         return await this.generateWithAnthropic(systemPrompt, userPrompt, designInput);
       }
@@ -105,7 +107,39 @@ export class ClaudeService {
 
     const data = (await response.json()) as { response?: string };
     logger.info('Ollama API response received successfully');
-    return data.response || '';
+
+    const responseText = data.response || '';
+    logger.info('Ollama raw response', {
+      length: responseText.length,
+      first200Chars: responseText.substring(0, 200),
+      last100Chars: responseText.substring(Math.max(0, responseText.length - 100))
+    });
+
+    return responseText;
+  }
+
+  /**
+   * Simplify prompt for Ollama - it doesn't handle long complex prompts well
+   */
+  private simplifyPromptForOllama(systemPrompt: string): string {
+    return `You are an expert frontend template engineer. Generate HTML/CSS/JS templates following these rules:
+
+1. Use semantic HTML with proper structure
+2. Use CSS variables for colors and fonts only
+3. NO hardcoded colors or fonts
+4. Return ONLY valid JSON in this exact format with NO other text:
+
+\`\`\`json
+{
+  "html": "...",
+  "css": "...",
+  "js": "...",
+  "variables": {"colors": {}, "fonts": {}},
+  "metadata": {"sectionId": "...", "elementsCount": 0}
+}
+\`\`\`
+
+IMPORTANT: Return ONLY the JSON block. No explanations, no preamble, no text after the closing brace.`;
   }
 
   /**
