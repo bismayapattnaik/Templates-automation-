@@ -5,8 +5,6 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
-  TextContent,
-  ToolResultBlockSchema,
 } from '@modelcontextprotocol/sdk/types.js';
 import { claudeService } from '../services/claudeService.js';
 import { imageProcessor } from '../services/imageProcessor.js';
@@ -19,10 +17,15 @@ import { GenerateTemplateRequest } from '../types/index.js';
  * Exposes template generation as Claude tools
  */
 
-const server = new Server({
-  name: 'Templates-Automation-MCP',
-  version: '1.0.0',
-});
+const server = new Server(
+  {
+    name: 'Templates-Automation-MCP',
+    version: '1.0.0',
+  },
+  {
+    capabilities: {},
+  }
+);
 
 // ═════════════════════════════════════════════════════
 // TOOL DEFINITIONS
@@ -275,7 +278,7 @@ function getSopInstructions() {
 // REQUEST HANDLER
 // ═════════════════════════════════════════════════════
 
-server.setRequestHandler(CallToolRequestSchema, async (request) => {
+server.setRequestHandler(CallToolRequestSchema, async (request: any) => {
   logger.info(`MCP: Tool called: ${request.params.name}`);
 
   try {
@@ -283,7 +286,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
     switch (request.params.name) {
       case 'generate_template': {
-        const args = request.params.arguments as GenerateTemplateRequest;
+        const args = request.params.arguments as unknown as GenerateTemplateRequest;
         result = await generateTemplate(args);
         break;
       }
